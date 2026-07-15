@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   expand:
-    if: ${{ hashFiles('.bootstrap/G4-Control-source.zip.b64') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +16,10 @@ jobs:
           fetch-depth: 0
       - name: Expand source archive
         run: |
+          if [ ! -f .bootstrap/G4-Control-source.zip.b64 ]; then
+            echo "Bootstrap archive is absent; nothing to expand."
+            exit 0
+          fi
           base64 -d .bootstrap/G4-Control-source.zip.b64 > /tmp/G4-Control-source.zip
           unzip -o /tmp/G4-Control-source.zip -d .
           rm -rf .bootstrap
