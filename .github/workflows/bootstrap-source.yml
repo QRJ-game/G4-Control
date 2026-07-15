@@ -15,58 +15,17 @@ jobs:
         with:
           fetch-depth: 0
           show-progress: false
-      - name: Verify, assemble and import G4 Control source tree
+      - name: Record actual repair part hashes
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
           git checkout -B main origin/main
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          cat > /tmp/part-sha256 <<'EOF'
-          608ce1ff150d73f42b539bbba67ea262497093d4e69a9dcfc1e813b6c887f2d7  .bootstrap/repair/000a.part
-          6a4153fb930cf6a8dd3a7c64ef91a2681e29c0da259f65e5f320cb079caabfc7  .bootstrap/repair/000b.part
-          9489ffdf977b7b0bb89eec82785c444d748b6e1b3fd05ce179e9758042086fb0  .bootstrap/repair/000c.part
-          11098ad45ea8bde41cc321a6d5fbbd72448bd466f215f6c7d3b155694d4f2ba0  .bootstrap/repair/000d.part
-          65f86a3eefc6f5cbc72b2b5e75be75c727e99eb3e9d8840affc6da43ce610e64  .bootstrap/chunks/001.part
-          85c3a3d64297ab7e16efca1392f019ac396de976e7e9cb172c1a9d5dec9254cb  .bootstrap/repair/002a.part
-          f39dc76b70f762379908e6fd7abfba087b0c9bb1504e48f52de072d941b9c2dc  .bootstrap/repair/002b.part
-          c67ca721b5a1cbf4129dcad53c92d242c6339cb8c4ce53048e569260648b8d6d  .bootstrap/repair/002c.part
-          1c36b30f6966a62d5e03184273b02fc733ba4b78ce9b0e049823b1eefed1cc09  .bootstrap/repair/002d.part
-          5abda8bef9cb3908c21861d5359412b9771ac2619017308e9f18e178f3176a99  .bootstrap/chunks/003.part
-          2a3f7d5c10116970ba760a5035bacca4b645789bdb4d9e5a6b1f850c27b26f10  .bootstrap/chunks/004.part
-          8d2beaa440a807ea0b2fc96bfef8955995ca489de38373742fe8dbc85f4bb637  .bootstrap/chunks/005.part
-          2bac31b5212b35f694e5aa3821d04372f052750ee2f31a60822e78063bb984a9  .bootstrap/chunks/006.part
-          929884af8ccc760945e5936ffbefcb224ce00b0c2dfbc47a25aec0ad78d690b2  .bootstrap/chunks/007.part
-          7989ba4f6c1176c600f0de877c373c547e70bc10ada196f7e4f913a7243c036d  .bootstrap/chunks/008.part
-          cd03bb33e25194d33fa366e51f640aa2e1574a77513d896fe21163354c18ec3f  .bootstrap/repair/009a.part
-          b8be52ecbd4b2d270f992af674d40f120b215ac542c2a51800e81a52a697cf2c  .bootstrap/repair/009b.part
-          14ee7a65f57f8cc910cc60465e9c2ed07ef696b175f6a8be37e1c8695f748f6c  .bootstrap/repair/009c.part
-          850c11f91f0dc63f67b29a36088320871d5cfe7aa8414732910345ad86231576  .bootstrap/repair/009d.part
-          efce5c6454e8545e04e2ed24486290216159b042a779f26de91197cf93199036  .bootstrap/chunks/010.part
-          EOF
-
-          parts=(
-            .bootstrap/repair/000a.part .bootstrap/repair/000b.part .bootstrap/repair/000c.part .bootstrap/repair/000d.part
-            .bootstrap/chunks/001.part
-            .bootstrap/repair/002a.part .bootstrap/repair/002b.part .bootstrap/repair/002c.part .bootstrap/repair/002d.part
-            .bootstrap/chunks/003.part .bootstrap/chunks/004.part .bootstrap/chunks/005.part .bootstrap/chunks/006.part
-            .bootstrap/chunks/007.part .bootstrap/chunks/008.part
-            .bootstrap/repair/009a.part .bootstrap/repair/009b.part .bootstrap/repair/009c.part .bootstrap/repair/009d.part
-            .bootstrap/chunks/010.part
-          )
-
-          sha256sum -c /tmp/part-sha256
-          cat "${parts[@]}" > /tmp/g4-source.zip.b64
-          base64 -d /tmp/g4-source.zip.b64 > /tmp/g4-source.zip
-          echo "50333a47b7d080b3e27f6e771f1e28cd06be116c384feb8bff60940768a12d43  /tmp/g4-source.zip" | sha256sum -c -
-          unzip -t /tmp/g4-source.zip
-          unzip -o /tmp/g4-source.zip -d .
-
-          rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap-source.yml
-          rm -f BOOTSTRAP_DIAGNOSTIC.txt TRIGGER.txt TRIGGER_2.txt SOURCE_IMPORT_TRIGGER.txt SOURCE_IMPORT_DIAGNOSTIC_TRIGGER.txt
-
-          git add -A
-          git commit -m "Import G4 Control v0.9.2 Public Beta"
+          {
+            echo "Actual repair part SHA-256 values:"
+            sha256sum .bootstrap/repair/*.part
+          } > REPAIR_DIAGNOSTIC.txt
+          git add REPAIR_DIAGNOSTIC.txt
+          git commit -m "Record repair part diagnostics" || true
           git push origin main
