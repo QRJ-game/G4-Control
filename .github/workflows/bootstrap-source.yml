@@ -20,8 +20,7 @@ jobs:
           fetch-depth: 0
       - name: Expand source archive on main
         run: |
-          git checkout main
-          git pull --ff-only origin main
+          git checkout -B main origin/main
           if [ ! -f .bootstrap/G4-Control-source.zip.b64 ]; then
             echo "Bootstrap archive is absent; nothing to expand."
             exit 0
