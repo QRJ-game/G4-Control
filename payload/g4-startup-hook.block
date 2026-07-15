@@ -1,0 +1,5 @@
+# BEGIN G4UI
+if [ -x /mnt/userdata/g4ui/g4-boot.sh ]; then
+    /mnt/userdata/g4ui/g4-boot.sh start >/dev/null 2>&1 &
+fi
+# END G4UI

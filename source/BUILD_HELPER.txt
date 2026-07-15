@@ -1,0 +1,24 @@
+﻿G4 helper build
+===============
+
+The helper has no libc dependency and uses Linux ARM EABI system calls only.
+
+Tested build command:
+
+clang --target=armv7-linux-gnueabi -Oz -ffreestanding -fno-builtin \
+  -fno-stack-protector -fno-pic -mfloat-abi=soft -nostdlib -static \
+  -fuse-ld=lld -Wl,--gc-sections -Wl,-s \
+  -o ../payload/g4-helper g4-helper.c
+
+Expected file type:
+
+ELF 32-bit LSB executable, ARM, EABI5, statically linked, soft-float ABI
+
+Self-test
+---------
+
+The v0.9.2 binary supports:
+
+  g4-helper --self-test
+
+It creates and closes a socket without binding TCP 18081, then exits 0.

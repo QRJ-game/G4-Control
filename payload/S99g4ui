@@ -1,0 +1,13 @@
+#!/bin/sh
+# G4UI_STARTUP_HOOK v0.5.7
+case "$1" in
+    stop)
+        [ -x /mnt/userdata/g4ui/g4-boot.sh ] &&
+            /mnt/userdata/g4ui/g4-boot.sh stop >/dev/null 2>&1
+        ;;
+    *)
+        [ -x /mnt/userdata/g4ui/g4-boot.sh ] &&
+            /mnt/userdata/g4ui/g4-boot.sh start >/dev/null 2>&1
+        ;;
+esac
+exit 0

@@ -1,0 +1,175 @@
+
+<style id="g4-host-style">
+#g4ControlOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: #08111f;
+}
+#g4ControlFrame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #08111f;
+}
+#g4OpenControl {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2147482999;
+  border: 0;
+  border-radius: 12px;
+  padding: 11px 16px;
+  background: #175cd3;
+  color: #fff;
+  font: 700 14px Arial, sans-serif;
+  box-shadow: 0 6px 20px rgba(0,0,0,.28);
+  cursor: pointer;
+}
+</style>
+
+<div id="g4ControlOverlay" hidden>
+  <iframe
+    id="g4ControlFrame"
+    title="G4 Control"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>
+
+<button id="g4OpenControl" type="button" hidden>Новый UI</button>
+
+<script id="g4-control-frame-b64" type="text/plain">__G4_NEW_UI_B64__</script>
+
+<script id="g4-host-controller">
+(function () {
+  "use strict";
+
+  var overlay = document.getElementById("g4ControlOverlay");
+  var frame = document.getElementById("g4ControlFrame");
+  var openButton = document.getElementById("g4OpenControl");
+  var encodedNode = document.getElementById("g4-control-frame-b64");
+  var frameLoaded = false;
+  var frameObjectUrl = null;
+
+  function decodeUtf8Base64(encoded) {
+    var binary = atob(encoded);
+    var bytes = new Uint8Array(binary.length);
+
+    for (var i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    if (window.TextDecoder) {
+      return new TextDecoder("utf-8").decode(bytes);
+    }
+
+    var escaped = "";
+    for (var j = 0; j < bytes.length; j++) {
+      escaped += "%" + bytes[j].toString(16).padStart(2, "0");
+    }
+    return decodeURIComponent(escaped);
+  }
+
+  function ensureFrameLoaded() {
+    if (frameLoaded) return;
+
+    var encoded = encodedNode.textContent.trim();
+    if (!encoded || encoded.length < 100) {
+      throw new Error("G4 Control payload is missing");
+    }
+
+    var frameHtml = decodeUtf8Base64(encoded);
+    var routerBase =
+      window.location.protocol +
+      "//" +
+      window.location.host +
+      "/";
+
+    var baseTag = '<base href="' + routerBase + '">';
+
+    if (/<head[^>]*>/i.test(frameHtml)) {
+      frameHtml = frameHtml.replace(
+        /<head([^>]*)>/i,
+        "<head$1>" + baseTag
+      );
+    } else {
+      frameHtml = baseTag + frameHtml;
+    }
+
+    var blob = new Blob(
+      [frameHtml],
+      {type: "text/html;charset=utf-8"}
+    );
+
+    frameObjectUrl = URL.createObjectURL(blob);
+    frame.src = frameObjectUrl;
+    frameLoaded = true;
+  }
+
+  function showNewUi() {
+    try {
+      ensureFrameLoaded();
+      sessionStorage.setItem("g4-ui-mode", "new");
+      overlay.hidden = false;
+      openButton.hidden = true;
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } catch (error) {
+      console.error(error);
+      alert("Не удалось открыть G4 Control: " + error.message);
+    }
+  }
+
+  function showFactoryUi() {
+    sessionStorage.setItem("g4-ui-mode", "stock");
+    overlay.hidden = true;
+    openButton.hidden = false;
+    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
+  }
+
+  window.addEventListener("message", function (event) {
+    if (event.source !== frame.contentWindow) return;
+    if (!event.data || event.data.type !== "g4-show-factory-ui") return;
+    showFactoryUi();
+  });
+
+  openButton.addEventListener("click", showNewUi);
+
+  frame.addEventListener("load", function () {
+    try {
+      var childOrigin = frame.contentWindow.location.origin;
+
+      if (childOrigin !== window.location.origin) {
+        console.warn(
+          "G4 Control iframe origin mismatch:",
+          childOrigin,
+          window.location.origin
+        );
+      }
+    } catch (error) {
+      console.warn("Could not inspect G4 Control iframe origin:", error);
+    }
+  });
+
+  window.addEventListener("beforeunload", function () {
+    if (frameObjectUrl) {
+      URL.revokeObjectURL(frameObjectUrl);
+      frameObjectUrl = null;
+    }
+  });
+
+  var requested = new URLSearchParams(window.location.search).get("g4");
+
+  if (requested === "stock") {
+    showFactoryUi();
+  } else if (requested === "new") {
+    showNewUi();
+  } else if (sessionStorage.getItem("g4-ui-mode") === "stock") {
+    showFactoryUi();
+  } else {
+    showNewUi();
+  }
+})();
+</script>
