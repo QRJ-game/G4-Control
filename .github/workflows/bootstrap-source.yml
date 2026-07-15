@@ -1,44 +1,64 @@
-name: Expand source tree
+name: Import source tree
 
 on:
-  pull_request:
+  push:
     branches: [main]
 
 permissions:
   contents: write
 
 jobs:
-  expand:
+  import:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           show-progress: false
-      - name: Diagnose source expansion on main
+      - name: Assemble and import G4 Control source tree
         shell: bash
         run: |
-          set +e
-          git checkout -B main origin/main
-          checkout_rc=$?
-          b64_size=$(wc -c < .bootstrap/G4-Control-source.zip.b64 2>/dev/null)
-          base64 -d .bootstrap/G4-Control-source.zip.b64 > /tmp/G4-Control-source.zip 2>/tmp/base64.err
-          decode_rc=$?
-          zip_size=$(wc -c < /tmp/G4-Control-source.zip 2>/dev/null)
-          unzip -t /tmp/G4-Control-source.zip >/tmp/unzip.out 2>&1
-          unzip_test_rc=$?
-          {
-            echo "checkout_rc=$checkout_rc"
-            echo "b64_size=$b64_size"
-            echo "decode_rc=$decode_rc"
-            echo "zip_size=$zip_size"
-            echo "unzip_test_rc=$unzip_test_rc"
-            echo "base64_error=$(tr '\n' ' ' </tmp/base64.err)"
-            echo "unzip_output=$(tail -n 5 /tmp/unzip.out | tr '\n' ' ')"
-          } > BOOTSTRAP_DIAGNOSTIC.txt
+          set -euo pipefail
+
+          parts=(
+            .bootstrap/chunks/000.part
+            .bootstrap/chunks/001.part
+            .bootstrap/chunks/002.part
+            .bootstrap/chunks/003.part
+            .bootstrap/chunks/004.part
+            .bootstrap/chunks/005.part
+            .bootstrap/chunks/006.part
+            .bootstrap/chunks/007.part
+            .bootstrap/chunks/008.part
+            .bootstrap/chunks/009.part
+            .bootstrap/chunks/010.part
+          )
+
+          for part in "${parts[@]}"; do
+            if [ ! -f "$part" ]; then
+              echo "Waiting for remaining bootstrap chunks: $part is absent"
+              exit 0
+            fi
+          done
+
+          cat "${parts[@]}" > /tmp/g4-source.zip.b64
+          base64 -d /tmp/g4-source.zip.b64 > /tmp/g4-source.zip
+          echo "50333a47b7d080b3e27f6e771f1e28cd06be116c384feb8bff60940768a12d43  /tmp/g4-source.zip" | sha256sum -c -
+          unzip -t /tmp/g4-source.zip
+          unzip -o /tmp/g4-source.zip -d .
+
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap-source.yml
+          rm -f BOOTSTRAP_DIAGNOSTIC.txt TRIGGER.txt TRIGGER_2.txt
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add BOOTSTRAP_DIAGNOSTIC.txt
-          git commit -m "Record source bootstrap diagnostic"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Nothing to import"
+            exit 0
+          fi
+
+          git commit -m "Import G4 Control v0.9.2 Public Beta"
           git push origin main
-          exit 0
