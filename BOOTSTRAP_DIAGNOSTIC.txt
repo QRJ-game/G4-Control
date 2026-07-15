@@ -1,0 +1,7 @@
+checkout_rc=0
+b64_size=18304
+decode_rc=0
+zip_size=13728
+unzip_test_rc=12
+base64_error=
+unzip_output=Archive:  /tmp/G4-Control-source.zip error [/tmp/G4-Control-source.zip]:  missing 84666 bytes in zipfile   (attempting to process anyway) error: invalid zip file with overlapped components (possible zip bomb) 
