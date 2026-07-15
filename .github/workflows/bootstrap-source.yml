@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   expand:
-    if: ${{ hashFiles('.bootstrap/G4-Control-source.zip') != '' }}
+    if: ${{ hashFiles('.bootstrap/G4-Control-source.zip.b64') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +17,8 @@ jobs:
           fetch-depth: 0
       - name: Expand source archive
         run: |
-          unzip -o .bootstrap/G4-Control-source.zip -d .
+          base64 -d .bootstrap/G4-Control-source.zip.b64 > /tmp/G4-Control-source.zip
+          unzip -o /tmp/G4-Control-source.zip -d .
           rm -rf .bootstrap
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
