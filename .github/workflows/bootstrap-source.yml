@@ -3,6 +3,8 @@ name: Import source tree
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
@@ -19,6 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git checkout -B main origin/main
 
           cat > /tmp/chunk-sha256 <<'EOF'
           d2a2e8fdf7b6e7a2013e867c2bf960064c42e1aad66cedb8c302c8883d72e846  .bootstrap/chunks/000.part
