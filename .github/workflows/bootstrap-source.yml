@@ -20,6 +20,29 @@ jobs:
         run: |
           set -euo pipefail
 
+          cat > /tmp/chunk-sha256 <<'EOF'
+          d2a2e8fdf7b6e7a2013e867c2bf960064c42e1aad66cedb8c302c8883d72e846  .bootstrap/chunks/000.part
+          65f86a3eefc6f5cbc72b2b5e75be75c727e99eb3e9d8840affc6da43ce610e64  .bootstrap/chunks/001.part
+          557440a836ad7730e785f04cb97e09c4eb1e01f42a4f74b7a93d271000328f49  .bootstrap/chunks/002.part
+          5abda8bef9cb3908c21861d5359412b9771ac2619017308e9f18e178f3176a99  .bootstrap/chunks/003.part
+          2a3f7d5c10116970ba760a5035bacca4b645789bdb4d9e5a6b1f850c27b26f10  .bootstrap/chunks/004.part
+          8d2beaa440a807ea0b2fc96bfef8955995ca489de38373742fe8dbc85f4bb637  .bootstrap/chunks/005.part
+          2bac31b5212b35f694e5aa3821d04372f052750ee2f31a60822e78063bb984a9  .bootstrap/chunks/006.part
+          929884af8ccc760945e5936ffbefcb224ce00b0c2dfbc47a25aec0ad78d690b2  .bootstrap/chunks/007.part
+          7989ba4f6c1176c600f0de877c373c547e70bc10ada196f7e4f913a7243c036d  .bootstrap/chunks/008.part
+          d29be9bf54e86f52d32a25fc4bd5d714d06d2e68191334bec44a53139aded842  .bootstrap/chunks/009.part
+          efce5c6454e8545e04e2ed24486290216159b042a779f26de91197cf93199036  .bootstrap/chunks/010.part
+          EOF
+
+          while read -r expected part; do
+            if [ ! -f "$part" ]; then
+              echo "Waiting for remaining bootstrap chunks: $part is absent"
+              exit 0
+            fi
+          done < /tmp/chunk-sha256
+
+          sha256sum -c /tmp/chunk-sha256
+
           parts=(
             .bootstrap/chunks/000.part
             .bootstrap/chunks/001.part
@@ -33,13 +56,6 @@ jobs:
             .bootstrap/chunks/009.part
             .bootstrap/chunks/010.part
           )
-
-          for part in "${parts[@]}"; do
-            if [ ! -f "$part" ]; then
-              echo "Waiting for remaining bootstrap chunks: $part is absent"
-              exit 0
-            fi
-          done
 
           cat "${parts[@]}" > /tmp/g4-source.zip.b64
           base64 -d /tmp/g4-source.zip.b64 > /tmp/g4-source.zip
