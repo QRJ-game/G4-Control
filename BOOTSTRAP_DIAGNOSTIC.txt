@@ -1,7 +1,31 @@
-checkout_rc=0
-b64_size=18304
-decode_rc=0
-zip_size=13728
-unzip_test_rc=12
-base64_error=
-unzip_output=Archive:  /tmp/G4-Control-source.zip error [/tmp/G4-Control-source.zip]:  missing 84666 bytes in zipfile   (attempting to process anyway) error: invalid zip file with overlapped components (possible zip bomb) 
+Expected source ZIP SHA-256: 50333a47b7d080b3e27f6e771f1e28cd06be116c384feb8bff60940768a12d43
+
+Actual chunk SHA-256 values:
+8fa6006851a7198c7a1b83a0f518569113f65424ac3b8b910813c67def664336  .bootstrap/chunks/000.part
+65f86a3eefc6f5cbc72b2b5e75be75c727e99eb3e9d8840affc6da43ce610e64  .bootstrap/chunks/001.part
+4da6b41d9b406f8207b9596de69d1de75a5c2991470e3165225d5bc9f7fcce4c  .bootstrap/chunks/002.part
+5abda8bef9cb3908c21861d5359412b9771ac2619017308e9f18e178f3176a99  .bootstrap/chunks/003.part
+2a3f7d5c10116970ba760a5035bacca4b645789bdb4d9e5a6b1f850c27b26f10  .bootstrap/chunks/004.part
+8d2beaa440a807ea0b2fc96bfef8955995ca489de38373742fe8dbc85f4bb637  .bootstrap/chunks/005.part
+2bac31b5212b35f694e5aa3821d04372f052750ee2f31a60822e78063bb984a9  .bootstrap/chunks/006.part
+929884af8ccc760945e5936ffbefcb224ce00b0c2dfbc47a25aec0ad78d690b2  .bootstrap/chunks/007.part
+7989ba4f6c1176c600f0de877c373c547e70bc10ada196f7e4f913a7243c036d  .bootstrap/chunks/008.part
+fcb3940ed96b75db9ae7d06551f901faf74d8a685400cfbb8ec728c326a2d791  .bootstrap/chunks/009.part
+efce5c6454e8545e04e2ed24486290216159b042a779f26de91197cf93199036  .bootstrap/chunks/010.part
+
+Chunk verification output:
+.bootstrap/chunks/000.part: FAILED
+.bootstrap/chunks/001.part: OK
+.bootstrap/chunks/002.part: FAILED
+.bootstrap/chunks/003.part: OK
+.bootstrap/chunks/004.part: OK
+.bootstrap/chunks/005.part: OK
+.bootstrap/chunks/006.part: OK
+.bootstrap/chunks/007.part: OK
+.bootstrap/chunks/008.part: OK
+.bootstrap/chunks/009.part: FAILED
+.bootstrap/chunks/010.part: OK
+sha256sum: WARNING: 3 computed checksums did NOT match
+
+Base64 decode error:
+base64: invalid input
